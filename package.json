@@ -1,0 +1,25 @@
+{
+  "name": "bamazonmanager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bamazonManager.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aj518480/bamazonManager.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Aj518480/bamazonManager/issues"
+  },
+  "homepage": "https://github.com/Aj518480/bamazonManager#readme",
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "color": "^3.1.2",
+    "inquirer": "^7.0.0",
+    "mysql": "^2.17.1"
+  }
+}
