@@ -4,99 +4,127 @@ var mysql = require("mysql");
 var inquirer = require('inquirer');
 
 
-
+//Our connection to our local host details with our SQL Port and first level of security
 var connection = mysql.createConnection({
-  
+
    host: "localhost",
-
-  // Your port; if not 3306
-  port: 3306,
-
-  // Your username
-  user: "root",
-
-  // Your password
-  password: "root",
-  database: "bamazonDB"
+   // Your port; if not 3306
+   port: 3306,
+   // Your username
+   user: "root",
+   // Your password
+   password: "root",
+   database: "bamazonDB"
 
 });
 
 
-//This function is to make sure we are connecting to our DB
-//Or to throw an error if we can not connect
-
-connection.connect(function(err) {
-   if (err){
-   console.log("error connect" + err.stack);
+//Function to make sure we are connected to our local DB
+connection.connect(function (err) {
+   if (err) {
+      console.log("error connect" + err.stack);
    }
-// We are calling the next function
-
    loadProducts();
+})
 
-    })
 
-//Function to load products from db
 
-function loadProducts(){
-connection.query("SELECT * FROM products", function(err,res){
-   if (err) throw err;   
-   console.table(res);
+//Function to load products from DB by using the console.table
+function loadProducts() {
+   connection.query("SELECT * FROM products", function (err, res) {
+      if (err) throw err;
+      console.table(res);
 
-   promptCustomerforItem(res);
- })
+      promptCustomerForItem(res);
+   })
 }
- //prompt customer for a product ID
-   function promptCustomerforItem(dbResponse){
- 
-      inquirer
-  .prompt([
-     {
-    type:"input",
-    name:"chooseID",
-    message:"Please pick a item ID number"
-     }
-  ])
-  .then(answers => {
-    var customerChosenProduct= answers.chooseID;
 
-    promptCustomerForQuantity(customerChosenProduct,dbResponse);
-  });
 
-   }
-   //prompt customer for quantity
-function promptCustomerForQuantity(customerChosenProduct,dbResponse){
+
+//Function to prompt the customer to pick a product but it's ID
+function promptCustomerForItem(dbResponse) {
+
    inquirer
-   .prompt([
-      {
-     type:"input",
-     name:"checkQuantity",
-     message:"How many would you like?"
-      }
-   ])
-   .then(answers => {
-     var howManyTheyChose= answers.checkQuantity;
-     console.log(howManyTheyChose,dbResponse.stock_quantity)
-     if(howManyTheyChose > dbResponse.stock_quantity){
-        console.log("Not enough in stock to purchase")
-     }
-     else{
-      makePurchase();
-      
-     }
-   });
+      .prompt([
+         {
+            type: "input",
+            name: "chooseID",
+            message: "Please pick a item ID number",
+            validate: function(value) {
+               if (isNaN(value) === false) {
+                  
+                 return true;
+               }
+               return false;
+               
+             }
+         }
+      ])
+      .then(answers => {
+         var customerChosenProduct = parseInt(answers.chooseID);
+
+        var customerInventory= checkInventory(customerChosenProduct,dbResponse);
+
+        //console.log(customerInventory);
+
+         promptCustomerForQuantity(customerInventory);
+      });
+
 }
 
-   //purchase function to a buy desired item
- function makePurchase(){
-    console.log("made purchase")
 
- };
 
-//  //check inventory to see if the user choice exist in
-  function checkInventory(dbResponse){
 
-//  }
+//Function to prompt asking the Customer how much of the item they would like to buy
+function promptCustomerForQuantity(customerInventory) {
+   inquirer
+      .prompt([
+         {
+            type: "input",
+            name: "howMany",
+            message: "How many would you like?"
+         }
+      ])
+      .then(answers => {
+         var usersQuantity = parseInt(answers.howMany);
+      if(usersQuantity > customerInventory.stock_quantity){
+         console.log("Sorry, We don't have enough for your order.")
+      }
+      else{
+         makePurchase(customerInventory,usersQuantity);
+      }
+      });
+      
+}
 
+//purchase function to a buy desired item
+function makePurchase(customerInventory,usersQuantity) {
+   connection.query("UPDATE products SET stock_quantity = stock_quantity - ?  WHERE id = ?", [usersQuantity,customerInventory.id],
+   function (err, res) {
+      
+      if (err) throw err;
+      console.table(res);
+
+   console.log("made purchase");
+     
+   })
+}
+
+
+   
+   function checkInventory(customerChosenProduct,dbResponse) {
+      for (let i = 0; i < dbResponse.length; i++) {
+
+      
+      if (dbResponse[i].id === customerChosenProduct ) {
+         return dbResponse[i];
+         // console.log("Not enough in stock to purchase")
+
+      }
+     
+    
+}
+}
 //  //check to see if user wants to quit the program(optional)
 //  function checksIfUserWantsToExit(){
 
@@ -105,4 +133,4 @@ function promptCustomerForQuantity(customerChosenProduct,dbResponse){
 // connection.end();//to exit sql
 // process.exit(0);// to exit node
 //  }
- 
+   
