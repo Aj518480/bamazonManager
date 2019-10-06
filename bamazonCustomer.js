@@ -88,7 +88,8 @@ function promptCustomerForQuantity(customerInventory) {
       .then(answers => {
          var usersQuantity = parseInt(answers.howMany);
       if(usersQuantity > customerInventory.stock_quantity){
-         console.log("Sorry, We don't have enough for your order.")
+         console.log("Sorry, We don't have enough to complete your order.")
+         checksIfUserWantsToExit();
       }
       else{
          makePurchase(customerInventory,usersQuantity);
@@ -104,8 +105,10 @@ function makePurchase(customerInventory,usersQuantity) {
       
       if (err) throw err;
       console.table(res);
+      
 
-   console.log("made purchase");
+   console.log("Thanks for your purchase");
+   checksIfUserWantsToExit();
      
    })
 }
@@ -126,10 +129,37 @@ function makePurchase(customerInventory,usersQuantity) {
 }
 }
 //  //check to see if user wants to quit the program(optional)
-//  function checksIfUserWantsToExit(){
+function checksIfUserWantsToExit(){
+   inquirer
+   .prompt({
+      
+         type: "list",
+         name: "wouldYouLikeToExit",
+         message: "Would you like to exit?",
+         choices:[
+            
+            "Make another purchase",
+            "Exit",
+         ]
+      
+   })
 
-//     //will need to ask user by inquirer
+   .then(answers => {
+      //var usersQuantity = parseInt(answers.howMany);
+      var usersAnswer = answers.wouldYouLikeToExit;
+      switch (usersAnswer) {
+         case "Make another purchase":
+            loadProducts();
+           break;
+   
+         case "Exit":
+            console.log("Hope to see you soon")
+            connection.end();
+           break;
 
+      }
+   });
+} 
 // connection.end();//to exit sql
 // process.exit(0);// to exit node
 //  }
