@@ -2,7 +2,7 @@
 
 var mysql = require("mysql");
 var inquirer = require('inquirer');
-
+const chalk = require('chalk');
 
 //Our connection to our local host details with our SQL Port and first level of security
 var connection = mysql.createConnection({
@@ -56,14 +56,13 @@ function promptCustomerForItem(dbResponse) {
                  return true;
                }
                return false;
-               
              }
          }
       ])
       .then(answers => {
          var customerChosenProduct = parseInt(answers.chooseID);
 
-        var customerInventory= checkInventory(customerChosenProduct,dbResponse);
+         var customerInventory= checkInventory(customerChosenProduct,dbResponse);
 
         //console.log(customerInventory);
 
@@ -91,22 +90,20 @@ function promptCustomerForQuantity(customerInventory,dbResponse) {
          var query= "UPDATE products SET stock_quantity = stock_quantity - ?  WHERE id = ?";
          connection.query(query, [usersQuantity,customerInventory.id]);
             
-            console.table(usersQuantity + " QTY"+" "+ customerInventory.product_name +" priced at"+ " "+ customerInventory.price +" Each" + " For a total: $" + customerInventory.price * usersQuantity);
-            //console.table(dbResponse)
-            makePurchase();
+            console.table(chalk.bgBlackBright(usersQuantity + " QTY"+" "+ customerInventory.product_name +" priced at"+ " "+ customerInventory.price +" Each" + " For a total: $" + customerInventory.price * usersQuantity));
+            
+           makePurchase(dbResponse);
       }
    
    
       else{
         usersQuantity > customerInventory.stock_quantity;
-         console.log("Sorry, We don't have enough to complete your order.")
+         console.log(chalk.red("Sorry, We don't have enough to complete your order."))
          checksIfUserWantsToExit();
       }
    }
       
-  
-   
-      
+
          )};
       
 
@@ -114,15 +111,18 @@ function promptCustomerForQuantity(customerInventory,dbResponse) {
 
 
 //purchase function to a buy desired item
-function makePurchase(customerInventory,usersQuantity) {
-   
-      
+function makePurchase(dbResponse) {
+   connection.query("SELECT * FROM products", function (err, res) {
       if (err) throw err;
-      console.log(res);
-   //completePurchase(customerInventory,dbResponse) 
-   console.log("Thanks for your purchase");
-   checksIfUserWantsToExit();
+      console.log("\n")
+      console.table(res);
+
      
+   })
+
+   console.log(chalk.green("Thanks for your purchase"));
+   checksIfUserWantsToExit();
+
    }
  
    function checkInventory(customerChosenProduct,dbResponse) {
@@ -131,14 +131,14 @@ function makePurchase(customerInventory,usersQuantity) {
       
       if (dbResponse[i].id === customerChosenProduct ) {
          return dbResponse[i];
-         // console.log("Not enough in stock to purchase")
+         
 
       }
      
     
 }
 }
-//  //check to see if user wants to quit the program(optional)
+//check to see if user wants to quit the program(optional)
 function checksIfUserWantsToExit(){
    inquirer
    .prompt({
@@ -163,7 +163,7 @@ function checksIfUserWantsToExit(){
            break;
    
          case "Exit":
-            console.log("Hope to see you soon")
+            console.log(chalk.magenta("Hope to see you soon"))
             connection.end();
            break;
 
@@ -172,5 +172,5 @@ function checksIfUserWantsToExit(){
 } 
 // connection.end();//to exit sql
 // process.exit(0);// to exit node
-//  }
+
    
