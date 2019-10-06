@@ -67,7 +67,7 @@ function promptCustomerForItem(dbResponse) {
 
         //console.log(customerInventory);
 
-         promptCustomerForQuantity(customerInventory);
+         promptCustomerForQuantity(customerInventory,dbResponse);
       });
 
 }
@@ -76,7 +76,7 @@ function promptCustomerForItem(dbResponse) {
 
 
 //Function to prompt asking the Customer how much of the item they would like to buy
-function promptCustomerForQuantity(customerInventory) {
+function promptCustomerForQuantity(customerInventory,dbResponse) {
    inquirer
       .prompt([
          {
@@ -87,34 +87,44 @@ function promptCustomerForQuantity(customerInventory) {
       ])
       .then(answers => {
          var usersQuantity = parseInt(answers.howMany);
-      if(usersQuantity > customerInventory.stock_quantity){
+          if(usersQuantity < customerInventory.stock_quantity){
+         var query= "UPDATE products SET stock_quantity = stock_quantity - ?  WHERE id = ?";
+         connection.query(query, [usersQuantity,customerInventory.id]);
+            
+            console.table(usersQuantity + " QTY"+" "+ customerInventory.product_name +" priced at"+ " "+ customerInventory.price +" Each" + " For a total: $" + customerInventory.price * usersQuantity);
+            //console.table(dbResponse)
+            makePurchase();
+      }
+   
+   
+      else{
+        usersQuantity > customerInventory.stock_quantity;
          console.log("Sorry, We don't have enough to complete your order.")
          checksIfUserWantsToExit();
       }
-      else{
-         makePurchase(customerInventory,usersQuantity);
-      }
-      });
+   }
       
-}
+  
+   
+      
+         )};
+      
+
+
+
 
 //purchase function to a buy desired item
 function makePurchase(customerInventory,usersQuantity) {
-   connection.query("UPDATE products SET stock_quantity = stock_quantity - ?  WHERE id = ?", [usersQuantity,customerInventory.id],
-   function (err, res) {
+   
       
       if (err) throw err;
-      console.table(res);
-      
-
+      console.log(res);
+   //completePurchase(customerInventory,dbResponse) 
    console.log("Thanks for your purchase");
    checksIfUserWantsToExit();
      
-   })
-}
-
-
-   
+   }
+ 
    function checkInventory(customerChosenProduct,dbResponse) {
       for (let i = 0; i < dbResponse.length; i++) {
 
